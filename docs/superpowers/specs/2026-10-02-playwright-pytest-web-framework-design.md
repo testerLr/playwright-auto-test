@@ -140,10 +140,13 @@ class BasePage:
     def current_url(self) -> str: ...
 ```
 
-- `goto()` 内部读取 `settings.base_url`,拼接并跳转,统一 `wait_until="networkidle"`
+- `goto()` 内部读取 `settings.base_url`,拼接并跳转,统一 `wait_until="load"`
 - `screenshot()` 通过 `allure.attach` 上传 PNG
 
 ### 6.2 具体页面
+
+所有具体页面对象都实现同一个 `open() -> "Self"` 方法:跳转到自己负责的 URL,
+返回 `self` 便于链式调用(`LoginPage(page).open().login(...)`)。
 
 #### LoginPage(saucedemo.com 登录页)
 
@@ -155,7 +158,7 @@ class BasePage:
 | 错误提示 | `[data-test="error"]` |
 
 业务方法:
-- `open()` —— 打开登录页,返回 `self`
+- `open() -> "LoginPage"` —— 打开登录页,返回 `self`
 - `login(username, password)` —— 输入并点击
 - `expect_error(text)` —— 断言错误提示文本
 
@@ -169,8 +172,10 @@ class BasePage:
 | 排序下拉 | `[data-test="product-sort-container"]` |
 | 加入购物车按钮 | `button[data-test^="add-to-cart"]` |
 | 购物车徽标 | `[data-test="shopping-cart-badge"]` |
+| 移除按钮 | `button[data-test^="remove"]` |
 
 业务方法:
+- `open() -> "InventoryPage"` —— 打开商品列表,返回 `self`
 - `add_item_to_cart(index: int)`
 - `remove_item_from_cart(index: int)`
 - `sort_by(value: Literal["az","za","lohi","hilo"])`
@@ -187,6 +192,7 @@ class BasePage:
 | 移除按钮 | `button[data-test^="remove"]` |
 
 业务方法:
+- `open() -> "CartPage"` —— 打开购物车,返回 `self`
 - `remove_item(index: int)`
 - `item_count() -> int`
 - `continue_shopping()`
@@ -208,12 +214,17 @@ class BasePage:
 
 ### 7.2 业务域 conftest
 
-`tests/auth/conftest.py`:
-- `logged_in_page` —— 用 `LoginPage` 完成登录,返回登录后的 Playwright `Page`(浏览器页)
+所有跨域 fixture(`logged_in_page`、`inventory`)实际上都集中在
+`tests/conftest.py`,因为 pytest 的 conftest 传播只朝子目录方向,不在兄弟
+之间共享 —— 把 `inventory` 放在 `tests/inventory/conftest.py` 会导致
+`tests/cart/test_cart.py` 看不见它(同理 `logged_in_page` 在
+`tests/auth/conftest.py` 会让 inventory / cart 测试找不到它)。`tests/auth/`
+和 `tests/inventory/` 仍保留 `conftest.py` 文件以便将来加入域专属 fixture,
+但目前只放说明性注释。
 
-`tests/inventory/conftest.py`:
-- `inventory` —— 返回已登录后构造的 `InventoryPage` 实例(POM 对象)
-- 依赖 `logged_in_page`
+`tests/conftest.py`(全局):
+- `logged_in_page` —— 用 `LoginPage` 完成登录,返回登录后的 Playwright `Page`(浏览器页)
+- `inventory` —— 返回已登录后构造的 `InventoryPage` 实例(POM 对象),依赖 `logged_in_page`
 
 `tests/cart/` 无专属 conftest,直接复用 `inventory` 添加商品后跳转。
 
@@ -265,7 +276,11 @@ ALLURE_RESULTS_DIR=reports/allure-results
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     base_url: str
     sauce_username: str
@@ -274,10 +289,13 @@ class Settings(BaseSettings):
     viewport_width: int = 1280
     viewport_height: int = 720
     timeout_ms: int = 30000
-    allure_results_dir: str = "reports/allure-results"
 
 settings = Settings()  # 模块级单例
 ```
+
+> 注意:`allure_results_dir` 不在 `Settings` 里 —— Allure 输出目录由
+> `pyproject.toml` 的 `--alluredir=reports/allure-results` 控制,与 Python
+> 配置解耦。
 
 ### 8.3 `pyproject.toml` 中的 `[tool.pytest.ini_options]`
 
