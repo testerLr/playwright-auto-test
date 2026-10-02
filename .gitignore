@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.eggs/
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+test-results/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+.tox/
+
+# Allure / Reports
+reports/allure-results/
+reports/allure-report/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Claude / AI tooling
+.claude/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# uv
+.uv-cache/
+
+# Logs
+*.log
