@@ -1,21 +1,11 @@
-"""Inventory-domain conftest: provides an InventoryPage after login."""
+"""Inventory-domain conftest.
 
-from __future__ import annotations
-
-import pytest
-from playwright.sync_api import Page
-
-from pages.inventory_page import InventoryPage
-
-
-@pytest.fixture
-def inventory(logged_in_page: Page) -> InventoryPage:
-    """Return an InventoryPage instance bound to a logged-in page.
-
-    ``Locator.count()`` does not auto-wait, so we explicitly wait for the
-    first inventory item to be visible before yielding. This avoids a
-    race where the React app has not finished rendering the list yet.
-    """
-    page = InventoryPage(logged_in_page)
-    page.inventory_items.first.wait_for(state="visible", timeout=10000)
-    return page
+The ``inventory`` fixture previously defined here was promoted to the
+global ``tests/conftest.py`` in task-11 so cart tests (which are NOT
+descendants of this directory) could also consume it. Pytest only
+propagates conftest.py fixtures to subdirectories, not siblings, so
+defining it here left ``tests/cart/test_cart.py`` unable to resolve
+``inventory``. The fixture now lives in ``tests/conftest.py`` and is
+visible to every test in ``tests/`` and below. See task-10 report for
+the analogous ``logged_in_page`` move.
+"""

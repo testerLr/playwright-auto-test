@@ -32,6 +32,11 @@ class CartPage(BasePage):
 
     # ----- High-level actions -----
 
+    def open(self) -> "CartPage":
+        """Navigate to the cart page and return self for chaining."""
+        self.goto(self.URL)
+        return self
+
     def remove_item(self, index: int) -> None:
         """Click the ``remove`` button at the given (0-based) index."""
         self.remove_buttons.nth(index).click()

@@ -44,6 +44,11 @@ class InventoryPage(BasePage):
 
     # ----- High-level actions -----
 
+    def open(self) -> "InventoryPage":
+        """Navigate to the inventory page and return self for chaining."""
+        self.goto(self.URL)
+        return self
+
     def add_item_to_cart(self, index: int) -> None:
         """Click the ``add-to-cart`` button at the given (0-based) index."""
         self.add_to_cart_buttons.nth(index).click()
