@@ -38,5 +38,4 @@ def test_cart_persists_items_across_pages(inventory):
 
     # Going back to inventory still shows the items as added (button label = "Remove")
     inventory_back = InventoryPage(inventory.page).open()
-    remove_buttons = inventory_back.page.locator('button[data-test^="remove"]')
-    assert remove_buttons.count() == 2
+    expect(inventory_back.remove_buttons).to_have_count(2)
