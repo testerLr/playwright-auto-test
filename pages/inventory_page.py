@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from typing import Literal
 
-from playwright.sync_api import Page
-
 from pages.base_page import BasePage
+from utils.config import settings
 
 SortValue = Literal["az", "za", "lohi", "hilo"]
 
@@ -42,6 +41,10 @@ class InventoryPage(BasePage):
     def cart_badge(self):
         return self.page.locator('[data-test="shopping-cart-badge"]')
 
+    @property
+    def remove_buttons(self):
+        return self.page.locator('button[data-test^="remove"]')
+
     # ----- High-level actions -----
 
     def open(self) -> "InventoryPage":
@@ -66,5 +69,8 @@ class InventoryPage(BasePage):
 
     def cart_badge_count(self) -> int:
         """Return the cart badge number as an int (0 if badge is absent)."""
-        text = self.cart_badge.text_content(timeout=1000) or "0"
+        # 1s is enough for a state that React updates synchronously after a
+        # click; it scales off settings.timeout_ms so global timeout changes
+        # propagate here too.
+        text = self.cart_badge.text_content(timeout=settings.timeout_ms // 30) or "0"
         return int(text)

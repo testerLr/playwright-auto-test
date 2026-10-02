@@ -18,7 +18,7 @@ def test_login_with_valid_credentials(page, auth_credentials):
     login_page = LoginPage(page).open()
     login_page.login(username, password)
 
-    page.wait_for_url("**/inventory.html", wait_until="networkidle")
+    page.wait_for_url("**/inventory.html", wait_until="load")
     inventory = InventoryPage(page)
     expect(inventory.title).to_have_text("Products")
 
@@ -44,6 +44,6 @@ def test_logout(logged_in_page):
     page.click("#react-burger-menu-btn")
     page.click('[data-test="logout-sidebar-link"]')
 
-    page.wait_for_url("**/", wait_until="networkidle")
+    page.wait_for_url("**/", wait_until="load")
     assert "saucedemo.com" in page.url
     expect(page.locator('[data-test="login-button"]')).to_be_visible()

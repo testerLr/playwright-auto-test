@@ -1,5 +1,7 @@
 """Application settings loaded from .env via pydantic-settings."""
 
+from __future__ import annotations
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,9 +26,6 @@ class Settings(BaseSettings):
     viewport_width: int = 1280
     viewport_height: int = 720
     timeout_ms: int = 30000
-
-    # Allure output
-    allure_results_dir: str = "reports/allure-results"
 
 
 settings = Settings()
