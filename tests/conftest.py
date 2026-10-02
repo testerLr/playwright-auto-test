@@ -1,9 +1,10 @@
-"""Global pytest fixtures: settings, credentials, browser context args."""
+"""Global pytest fixtures: settings, credentials, browser context args, login."""
 
 from __future__ import annotations
 
 import pytest
 
+from pages.login_page import LoginPage
 from utils.config import Settings, settings
 
 
@@ -30,3 +31,20 @@ def browser_context_args(app_settings: Settings) -> dict:
         "locale": "en-US",
         "base_url": app_settings.base_url,
     }
+
+
+@pytest.fixture
+def logged_in_page(page, auth_credentials: tuple[str, str]):
+    """Return a Playwright Page already logged in to saucedemo.com.
+
+    Moved to the global conftest so that tests in any subdirectory
+    (auth/, inventory/, cart/) can consume it without redefinition.
+    Per spec §7.3 it is a function-scoped fixture in the same tier
+    as ``page`` and ``auth_credentials``.
+    """
+    username, password = auth_credentials
+    login_page = LoginPage(page).open()
+    login_page.login(username, password)
+    # Login lands on /inventory.html; wait until DOM is stable.
+    login_page.page.wait_for_url("**/inventory.html", wait_until="networkidle")
+    return page
